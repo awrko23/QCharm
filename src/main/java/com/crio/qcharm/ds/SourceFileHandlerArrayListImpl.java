@@ -5,7 +5,11 @@ import com.crio.qcharm.request.PageRequest;
 import com.crio.qcharm.request.SearchReplaceRequest;
 import com.crio.qcharm.request.SearchRequest;
 import com.crio.qcharm.request.UndoRequest;
+
+//import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
@@ -13,12 +17,29 @@ import java.util.Stack;
 
 public class SourceFileHandlerArrayListImpl implements SourceFileHandler {
 
+  private String fileName;
+  private List<String> lines;
+  private SourceFileVersionArrayListImpl sourceobj;
 
   public SourceFileHandlerArrayListImpl(String fileName) {
+      this.fileName = fileName;
   }
 
+  public String getFileName() {
+    return this.fileName;
+  }
 
+  public void setFileName(String fileName) {
+    this.fileName = fileName;
+  }
 
+  public List<String> getLines() {
+    return this.lines;
+  }
+
+  public void setLines(List<String> lines) {
+    this.lines = lines;
+  }
   // TODO: CRIO_TASK_MODULE_LOAD_FILE
   // Input:
   //      FileName
@@ -49,6 +70,17 @@ public class SourceFileHandlerArrayListImpl implements SourceFileHandler {
 
   @Override
   public Page loadFile(FileInfo fileInfo) {
+    SourceFileHandlerArrayListImpl obj = new SourceFileHandlerArrayListImpl(fileInfo.getFileName());
+    obj.setLines(fileInfo.getLines());
+    this.sourceobj = new SourceFileVersionArrayListImpl(fileInfo);
+    Page pgobj;
+    if (obj.lines.size() >=50) { 
+      pgobj = new Page(obj.getLines().subList(0, 50), 0, obj.getFileName(), new Cursor(0, 0));
+    }
+    else {
+      pgobj = new Page(obj.getLines(), 0, obj.getFileName(), new Cursor(0, 0));
+    }
+    return pgobj;
   }
 
   // TODO: CRIO_TASK_MODULE_LOAD_FILE
@@ -70,6 +102,7 @@ public class SourceFileHandlerArrayListImpl implements SourceFileHandler {
 
   @Override
   public Page getPrevLines(PageRequest pageRequest) {
+    return sourceobj.getLinesBefore(pageRequest);
   }
 
   // TODO: CRIO_TASK_MODULE_LOAD_FILE
@@ -91,6 +124,7 @@ public class SourceFileHandlerArrayListImpl implements SourceFileHandler {
 
   @Override
   public Page getNextLines(PageRequest pageRequest) {
+    return sourceobj.getLinesAfter(pageRequest);
   }
 
   // TODO: CRIO_TASK_MODULE_LOAD_FILE
@@ -112,29 +146,16 @@ public class SourceFileHandlerArrayListImpl implements SourceFileHandler {
 
   @Override
   public Page getLinesFrom(PageRequest pageRequest) {
+    return sourceobj.getLinesFrom(pageRequest);
   }
-
-
-
-
-
-
-
-
-
-
 
   @Override
   public void editLines(EditRequest editRequest) {
   }
 
-
-
-
-
-
-
-
-
-
+  @Override
+  public SourceFileVersion getLatestSourceFileVersion(String fileName) {
+    return null;
+  }
+  
 }

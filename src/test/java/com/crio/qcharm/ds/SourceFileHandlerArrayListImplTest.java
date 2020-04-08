@@ -144,13 +144,13 @@ class SourceFileHandlerArrayListImplTest {
     SourceFileHandlerArrayListImpl sourceFileHandlerArrayListImpl = getSourceFileHandlerArrayList(fileName);
 
     FileInfo fileInfo = getLargeSampleFileInfo(fileName, 100);
-    sourceFileHandlerArrayListImpl.loadFile(fileInfo);
+    Page emptyPage = sourceFileHandlerArrayListImpl.loadFile(fileInfo);
 
     int length = 35;
     int startingLineNo = 100;
     Cursor cursor = new Cursor(0, 0);
     PageRequest pageRequest = new PageRequest(startingLineNo, fileName, length, cursor);
-    Page emptyPage = sourceFileHandlerArrayListImpl.getNextLines(pageRequest);
+    emptyPage = sourceFileHandlerArrayListImpl.getNextLines(pageRequest);
 
     assertEquals(new ArrayList<String>(), emptyPage.getLines());
     assertEquals(100, emptyPage.getStartingLineNo());
@@ -164,14 +164,14 @@ class SourceFileHandlerArrayListImplTest {
     SourceFileHandlerArrayListImpl sourceFileHandlerArrayListImpl = getSourceFileHandlerArrayList(fileName);
 
     FileInfo fileInfo = getLargeSampleFileInfo(fileName, 100);
-    sourceFileHandlerArrayListImpl.loadFile(fileInfo);
+    Page page = sourceFileHandlerArrayListImpl.loadFile(fileInfo);
 
     int length = 35;
     int startingLine = 90;
 
     Cursor cursor = new Cursor(0, 0);
     PageRequest pageRequest = new PageRequest(startingLine, fileName, length, cursor);
-    Page page = sourceFileHandlerArrayListImpl.getNextLines(pageRequest);
+    page = sourceFileHandlerArrayListImpl.getNextLines(pageRequest);
 
     assertEquals(fileInfo.getLines().subList(startingLine+1, 100), page.getLines());
     assertEquals(startingLine+1, page.getStartingLineNo());
@@ -185,14 +185,14 @@ class SourceFileHandlerArrayListImplTest {
     SourceFileHandlerArrayListImpl sourceFileHandlerArrayListImpl = getSourceFileHandlerArrayList(fileName);
 
     FileInfo fileInfo = getLargeSampleFileInfo(fileName, 100);
-    sourceFileHandlerArrayListImpl.loadFile(fileInfo);
+    Page page = sourceFileHandlerArrayListImpl.loadFile(fileInfo);
 
     int length = 35;
     int startingLine = 35;
 
     Cursor cursor = new Cursor(0, 0);
     PageRequest pageRequest = new PageRequest(startingLine, fileName, length, cursor);
-    Page page = sourceFileHandlerArrayListImpl.getPrevLines(pageRequest);
+    page = sourceFileHandlerArrayListImpl.getPrevLines(pageRequest);
 
     assertEquals(fileInfo.getLines().subList(0, length), page.getLines());
     assertEquals(0, page.getStartingLineNo());
@@ -206,12 +206,12 @@ class SourceFileHandlerArrayListImplTest {
     SourceFileHandlerArrayListImpl sourceFileHandlerArrayListImpl = getSourceFileHandlerArrayList(fileName);
 
     FileInfo fileInfo = getLargeSampleFileInfo(fileName, 100);
-    sourceFileHandlerArrayListImpl.loadFile(fileInfo);
+    Page emptyPage = sourceFileHandlerArrayListImpl.loadFile(fileInfo);
 
     int length = 35;
     Cursor cursor = new Cursor(0, 0);
     PageRequest pageRequest = new PageRequest(0, fileName, length, cursor);
-    Page emptyPage = sourceFileHandlerArrayListImpl.getPrevLines(pageRequest);
+    emptyPage = sourceFileHandlerArrayListImpl.getPrevLines(pageRequest);
 
     assertEquals(new ArrayList<String>(), emptyPage.getLines());
   }
@@ -223,14 +223,14 @@ class SourceFileHandlerArrayListImplTest {
     SourceFileHandlerArrayListImpl sourceFileHandlerArrayListImpl = getSourceFileHandlerArrayList(fileName);
 
     FileInfo fileInfo = getLargeSampleFileInfo(fileName, 100);
-    sourceFileHandlerArrayListImpl.loadFile(fileInfo);
+    Page page = sourceFileHandlerArrayListImpl.loadFile(fileInfo);
 
     int length = 35;
     int startingLine = 10;
 
     Cursor cursor = new Cursor(0, 0);
     PageRequest pageRequest = new PageRequest(startingLine, fileName, length, cursor);
-    Page page = sourceFileHandlerArrayListImpl.getPrevLines(pageRequest);
+    page = sourceFileHandlerArrayListImpl.getPrevLines(pageRequest);
 
     assertEquals(fileInfo.getLines().subList(0, 10), page.getLines());
     assertEquals(0, page.getStartingLineNo());
@@ -244,14 +244,14 @@ class SourceFileHandlerArrayListImplTest {
     SourceFileHandlerArrayListImpl sourceFileHandlerArrayListImpl = getSourceFileHandlerArrayList(fileName);
 
     FileInfo fileInfo = getLargeSampleFileInfo(fileName, 100);
-    sourceFileHandlerArrayListImpl.loadFile(fileInfo);
+    Page page = sourceFileHandlerArrayListImpl.loadFile(fileInfo);
 
     int length = 35;
     int startingLine = 35;
 
     Cursor cursor = new Cursor(0, 0);
     PageRequest pageRequest = new PageRequest(startingLine, fileName, length, cursor);
-    Page page = sourceFileHandlerArrayListImpl.getNextLines(pageRequest);
+    page = sourceFileHandlerArrayListImpl.getNextLines(pageRequest);
 
     assertEquals(fileInfo.getLines().subList(36, 71), page.getLines());
     assertEquals(36, page.getStartingLineNo());
@@ -265,30 +265,19 @@ class SourceFileHandlerArrayListImplTest {
     SourceFileHandlerArrayListImpl sourceFileHandlerArrayListImpl = getSourceFileHandlerArrayList(fileName);
 
     FileInfo fileInfo = getLargeSampleFileInfo(fileName, 100);
-    sourceFileHandlerArrayListImpl.loadFile(fileInfo);
+    Page page = sourceFileHandlerArrayListImpl.loadFile(fileInfo);
 
     int length = 35;
     int startingLine = 10;
 
     Cursor cursor = new Cursor(20, 13);
     PageRequest pageRequest = new PageRequest(startingLine, fileName, length, cursor);
-    Page page = sourceFileHandlerArrayListImpl.getLinesFrom(pageRequest);
+    page = sourceFileHandlerArrayListImpl.getLinesFrom(pageRequest);
 
     Cursor expectedCursorPosition = new Cursor(startingLine, 0);
     assertEquals(expectedCursorPosition, page.getCursorAt());
     assertEquals(fileInfo.getLines().subList(startingLine, startingLine + length), page.getLines());
     assertEquals(10, page.getStartingLineNo());
   }
-
-
-
-
-
-
-
-
-
-
-
 
 }

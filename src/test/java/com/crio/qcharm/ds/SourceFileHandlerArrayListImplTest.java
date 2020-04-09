@@ -6,6 +6,7 @@ import com.crio.qcharm.request.PageRequest;
 import com.crio.qcharm.request.SearchReplaceRequest;
 import com.crio.qcharm.request.SearchRequest;
 import com.crio.qcharm.request.UndoRequest;
+import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Deque;
@@ -26,13 +27,16 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@ExtendWith(SpringExtension.class)
 class SourceFileHandlerArrayListImplTest {
 
   @BeforeEach
   public void setupUncaughtExceptionHandler() {
     Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler());
     ThreadContext.put("runId", UUID.randomUUID().toString());
+  }
+
+  private long getThreadElapsedTime() {
+    return ManagementFactory.getThreadMXBean().getCurrentThreadUserTime();
   }
 
   static FileInfo inefficientSearch;
@@ -290,14 +294,15 @@ class SourceFileHandlerArrayListImplTest {
     SearchRequest searchRequest = new SearchRequest(0, pattern, fileName);
     long timeTakenInNs = 0;
     for (int i = 0; i < 10; ++i) {
-      long startTime = System.nanoTime();
+      long startTime = getThreadElapsedTime();
       List<Cursor> cursors = sourceFileHandlerArrayListImpl.search(searchRequest);
-      timeTakenInNs += System.nanoTime() - startTime;
+      timeTakenInNs += getThreadElapsedTime() - startTime;
       assertEquals(expectedCursorPositions, cursors);
     }
     System.out.printf("efficientSearchTest timetaken = %d ns\n", timeTakenInNs);
     assert (timeTakenInNs < 3000000000l);
   }
+
 
 
 

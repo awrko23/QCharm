@@ -196,6 +196,12 @@ public class SourceFileVersionArrayListImpl implements SourceFileVersion {
   //    SearchRequest - contains following information
   //         1. pattern - pattern you want to search
   //         2. File name - file where you want to search for the pattern
+
+  // TODO: CRIO_TASK_MODULE_IMPROVING_SEARCH
+  // Input:
+  //    SearchRequest - contains following information
+  //        1. pattern - pattern you want to search
+  //        2. File name - file where you want to search for the pattern
   // Description:
   //    1. Find all occurrences of the pattern in the SourceFile
   //    2. Create an empty list of cursors
@@ -206,6 +212,7 @@ public class SourceFileVersionArrayListImpl implements SourceFileVersion {
   // Reference:
   //     https://www.geeksforgeeks.org/naive-algorithm-for-pattern-searching/
 
+  /*
   @Override
   public List<Cursor> getCursors(SearchRequest searchRequest) {
     //boolean efficient = true;
@@ -230,6 +237,72 @@ public class SourceFileVersionArrayListImpl implements SourceFileVersion {
     }
 
     return cursorsList;
+  }
+  */
+
+  //    1. Use FASTER string search algorithm.
+  //    2. Feel free to try any other algorithm/data structure to improve search speed.
+  // Reference:
+  //     https://www.geeksforgeeks.org/kmp-algorithm-for-pattern-searching/
+
+  @Override
+  public List<Cursor> getCursors(SearchRequest searchRequest) {
+    boolean efficient = true;
+    int M = searchRequest.getPattern().length();
+    List<Cursor> cursorsList = new ArrayList<Cursor>();
+    for(int k = 0; k < lines.size(); k++) { 
+      int N = lines.get(k).length(); 
+      int lps[] = new int[M]; 
+      int j = 0;
+      computeLPSArray(searchRequest.getPattern(), M, lps); 
+      int i = 0; 
+      while (i < N) { 
+        if (searchRequest.getPattern().charAt(j) == lines.get(k).charAt(i)) { 
+          j++; 
+          i++; 
+        } 
+        if (j == M) { 
+          //System.out.println("Found pattern " + "at index " + (i - j)); 
+          cursorsList.add(new Cursor(k, i - j));
+          j = lps[j - 1]; 
+        } 
+
+        else if (i < N && searchRequest.getPattern().charAt(j) != lines.get(k).charAt(i)) { 
+          if (j != 0) {
+            j = lps[j - 1];
+          } 
+          else {
+            i = i + 1;
+          } 
+        } 
+      } 
+    }
+
+    return cursorsList;
+  }
+
+  public void computeLPSArray(String pat, int M, int lps[]) { 
+  
+    int len = 0; 
+    int i = 1; 
+    lps[0] = 0;
+  
+    while (i < M) { 
+      if (pat.charAt(i) == pat.charAt(len)) { 
+        len++; 
+        lps[i] = len; 
+        i++; 
+      } 
+      else { 
+        if (len != 0) { 
+          len = lps[len - 1]; 
+        } 
+        else { 
+          lps[i] = len; 
+          i++; 
+        } 
+      } 
+    } 
   }
 
 }

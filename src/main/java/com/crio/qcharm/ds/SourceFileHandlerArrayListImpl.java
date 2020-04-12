@@ -279,10 +279,10 @@ public class SourceFileHandlerArrayListImpl implements SourceFileHandler, Clonea
     //Collections.copy(listoflines, obj.getAllLines());
     int limit = editRequest.getEndingLineNo();
     if (editRequest.getEndingLineNo() >= lines.size()) {
-      limit = this.lines.size() - 1;
+      limit = this.lines.size();
     }
 
-    for(int i = editRequest.getStartingLineNo();i <= limit;++i) {
+    for(int i = editRequest.getStartingLineNo();i < limit;++i) {
       this.lines.remove(editRequest.getStartingLineNo());
     }
     

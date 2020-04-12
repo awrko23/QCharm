@@ -338,7 +338,7 @@ class SourceFileHandlerArrayListImplTest {
     SourceFileHandlerArrayListImpl sourceFileHandlerArrayListImpl = getSourceFileHandlerArrayList(fileName);
 
     int N = 100;
-    FileInfo fileInfo = getLargeSampleFileInfo(fileName, N + 1);
+    FileInfo fileInfo = getLargeSampleFileInfo(fileName, N);
     sourceFileHandlerArrayListImpl.loadFile(fileInfo);
 
     List<String> changedLines = new ArrayList<>();

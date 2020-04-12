@@ -331,6 +331,146 @@ class SourceFileHandlerArrayListImplTest {
 
 
 
+  @Test
+  @Timeout(value = 5000, unit = TimeUnit.MILLISECONDS)
+  void editLines() {
+    String fileName = "testfile";
+    SourceFileHandlerArrayListImpl sourceFileHandlerArrayListImpl = getSourceFileHandlerArrayList(fileName);
+
+    int N = 100;
+    FileInfo fileInfo = getLargeSampleFileInfo(fileName, N + 1);
+    sourceFileHandlerArrayListImpl.loadFile(fileInfo);
+
+    List<String> changedLines = new ArrayList<>();
+    for (int i = 0; i < 35; ++i) {
+      StringBuffer buffer = new StringBuffer("LineNumber");
+      buffer.append(i);
+      changedLines.add(buffer.toString());
+    }
+
+    EditRequest editRequest = new EditRequest(35, 70, changedLines, fileName, new Cursor(0,0));
+    sourceFileHandlerArrayListImpl.editLines(editRequest);
+
+    PageRequest pageRequest = new PageRequest(0, fileName, N, new Cursor(0,0));
+    Page page = sourceFileHandlerArrayListImpl.getLinesFrom(pageRequest);
+
+    assertEquals(fileInfo.getLines().subList(0, 35), page.getLines().subList(0,35));
+    assertEquals(changedLines, page.getLines().subList(35, 70));
+    assertEquals(fileInfo.getLines().subList(70, N), page.getLines().subList(70,N));
+  }
+
+
+  @Test
+  @Timeout(value = 5000, unit = TimeUnit.MILLISECONDS)
+  void insertLinesAtTop() {
+    String fileName = "testfile";
+    SourceFileHandlerArrayListImpl sourceFileHandlerArrayListImpl = getSourceFileHandlerArrayList(fileName);
+
+    int N = 10;
+    int K = 3;
+    FileInfo fileInfo = getLargeSampleFileInfo(fileName, N);
+    sourceFileHandlerArrayListImpl.loadFile(fileInfo);
+
+    List<String> changedLines = new ArrayList<>();
+    for (int i = 0; i < K; ++i) {
+      StringBuffer buffer = new StringBuffer("LineNumber");
+      buffer.append(i);
+      changedLines.add(buffer.toString());
+    }
+    List<String> newContents = new ArrayList<>();
+
+    newContents.addAll(changedLines);
+    newContents.addAll(fileInfo.getLines());
+
+    Cursor cursor = new Cursor(0, 0);
+    EditRequest editRequest = new EditRequest( 0, N, newContents, fileName, cursor);
+    sourceFileHandlerArrayListImpl.editLines(editRequest);
+
+    PageRequest pageRequest = new PageRequest(0, fileName, N + K, new Cursor(0,0));
+    Page page = sourceFileHandlerArrayListImpl.getLinesFrom(pageRequest);
+
+    assertEquals(newContents, page.getLines());
+    assertEquals(0, page.getStartingLineNo());
+    assertEquals(cursor, page.getCursorAt());
+  }
+
+  @Test
+  @Timeout(value = 5000, unit = TimeUnit.MILLISECONDS)
+  void insertLinesAtBottom() {
+    String fileName = "testfile";
+    SourceFileHandlerArrayListImpl sourceFileHandlerArrayListImpl = getSourceFileHandlerArrayList(fileName);
+
+    int N = 10;
+    int K = 3;
+    FileInfo fileInfo = getLargeSampleFileInfo(fileName, N);
+    sourceFileHandlerArrayListImpl.loadFile(fileInfo);
+
+    List<String> changedLines = new ArrayList<>();
+    for (int i = 0; i < K; ++i) {
+      StringBuffer buffer = new StringBuffer("LineNumber");
+      buffer.append(i);
+      changedLines.add(buffer.toString());
+    }
+    List<String> newContents = new ArrayList<>();
+
+    newContents.addAll(fileInfo.getLines());
+    newContents.addAll(changedLines);
+
+    Cursor cursor = new Cursor(0, 0);
+    EditRequest editRequest = new EditRequest( 0, N, newContents, fileName, cursor);
+    sourceFileHandlerArrayListImpl.editLines(editRequest);
+
+    PageRequest pageRequest = new PageRequest(0, fileName, N + K, new Cursor(0,0));
+    Page page = sourceFileHandlerArrayListImpl.getLinesFrom(pageRequest);
+
+    assertEquals(newContents, page.getLines());
+    assertEquals(0, page.getStartingLineNo());
+    assertEquals(cursor, page.getCursorAt());
+  }
+
+  @Test
+  @Timeout(value = 5000, unit = TimeUnit.MILLISECONDS)
+  void randomInsertUpdateDelete() {
+    int seed = 0x1231;
+    Random random = new Random(seed);
+    String fileName = "randomInsertUpdateDelete";
+    SourceFileHandlerArrayListImpl sourceFileHandlerArrayListImpl = getSourceFileHandlerArrayList(fileName);
+
+    int N = 1000;
+    FileInfo fileInfo = getLargeSampleFileInfo(fileName, N);
+    sourceFileHandlerArrayListImpl.loadFile(fileInfo);
+
+    List<String> newContents = new ArrayList<>();
+    newContents.addAll(fileInfo.getLines());
+
+    int K = N;
+    for (int i = 0; i < N; ++i) {
+      int len = newContents.size();
+      int toss= random.nextInt(3);
+      int index = random.nextInt(len);
+      if (toss < 0) {
+        newContents.remove(index);
+      } else if (toss < 1) {
+        newContents.add(index, "Text to be inserted");
+      } else {
+        newContents.set(index, "Something else " + newContents.get(index) + "Something");
+      }
+
+      Cursor cursor = new Cursor(0, 0);
+      EditRequest editRequest = new EditRequest( 0, K, newContents, fileName, cursor);
+      sourceFileHandlerArrayListImpl.editLines(editRequest);
+
+      PageRequest pageRequest = new PageRequest(0, fileName, newContents.size(), new Cursor(0,0));
+      Page page = sourceFileHandlerArrayListImpl.getLinesFrom(pageRequest);
+
+      K = page.getLines().size();
+
+      assertEquals(newContents, page.getLines());
+      assertEquals(0, page.getStartingLineNo());
+      assertEquals(cursor, page.getCursorAt());
+    }
+  }
+
 
 
 

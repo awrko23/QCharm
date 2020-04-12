@@ -15,11 +15,12 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Stack;
 
-public class SourceFileHandlerArrayListImpl implements SourceFileHandler {
+public class SourceFileHandlerArrayListImpl implements SourceFileHandler, Cloneable {
 
   private String fileName;
   private List<String> lines;
   private SourceFileVersionArrayListImpl sourceobj;
+  private CopyBuffer copyBuffer;
 
   public SourceFileHandlerArrayListImpl(String fileName) {
       this.fileName = fileName;
@@ -72,6 +73,8 @@ public class SourceFileHandlerArrayListImpl implements SourceFileHandler {
   public Page loadFile(FileInfo fileInfo) {
     SourceFileHandlerArrayListImpl obj = new SourceFileHandlerArrayListImpl(fileInfo.getFileName());
     obj.setLines(fileInfo.getLines());
+    this.setFileName(fileInfo.getFileName());
+    this.setLines(fileInfo.getLines());
     this.sourceobj = new SourceFileVersionArrayListImpl(fileInfo);
     Page pgobj;
     if (obj.lines.size() >=50) { 
@@ -146,11 +149,27 @@ public class SourceFileHandlerArrayListImpl implements SourceFileHandler {
 
   @Override
   public Page getLinesFrom(PageRequest pageRequest) {
-    return sourceobj.getLinesFrom(pageRequest);
-  }
-
-  @Override
-  public void editLines(EditRequest editRequest) {
+    int lineNumber = pageRequest.getStartingLineNo();
+    int numberOfLines = pageRequest.getNumberOfLines();
+    int startingLineNo = 0;
+    List<String> requestedlines = new ArrayList<String>();
+    if (lines != null) {
+        startingLineNo = lineNumber;
+      for(int i = 0; i < numberOfLines; i++) {
+      
+        if(lineNumber + i > this.lines.size() - 1)
+          break;
+        
+        requestedlines.add(this.lines.get(lineNumber + i));
+      }
+    }
+    else {
+      requestedlines = Collections.emptyList();
+    }
+    //Collections.reverse(requestedlines);
+    Page obj = new Page(requestedlines, startingLineNo, pageRequest.getFileName(), new Cursor(lineNumber, 0));
+    return obj;
+    //return sourceobj.getLinesFrom(pageRequest);
   }
 
   @Override
@@ -172,5 +191,104 @@ public class SourceFileHandlerArrayListImpl implements SourceFileHandler {
   public List<Cursor> search(SearchRequest searchRequest) {
     return sourceobj.getCursors(searchRequest);
   }
+
+  // TODO: CRIO_TASK_MODULE_CUT_COPY_PASTE
+  // Input:
+  //     CopyBuffer - contains following information
+  //         1. List of lines
+  // Description:
+  //      Store the incoming copy buffer
+
+  @Override
+  public void setCopyBuffer(CopyBuffer copyBuffer) {
+    this.copyBuffer = copyBuffer;
+  }
+
+  // TODO: CRIO_TASK_MODULE_CUT_COPY_PASTE
+  // Input:
+  //      None
+  // Description:
+  //      return the previously stored copy buffer
+  //      if nothing is stored return copy buffer containing empty lines.
+
+  @Override
+  public CopyBuffer getCopyBuffer() {
+    return this.copyBuffer;
+  }
+
+  // TODO: CRIO_TASK_MODULE_CUT_COPY_PASTE
+  // Input:
+  //      Object of type SourceFileVersionArrayListImpl
+  // Description:
+  //      make a copy of the the given SourceFileVersionArrayListImpl object return new object
+  // NOTE:
+  //      DON'T CHANGE THE SIGNATURE OF THIS FUNCTION
+
+  @Override
+  public SourceFileVersion cloneObj(SourceFileVersion ver) throws CloneNotSupportedException {
+      SourceFileVersionArrayListImpl obj = (SourceFileVersionArrayListImpl)super.clone();
+      obj = new SourceFileVersionArrayListImpl(sourceobj);
+      return obj;
+  }
+
+  // TODO: CRIO_TASK_MODULE_CUT_COPY_PASTE
+  // Input:
+  //     EditRequest
+  //        1. starting line no - starting line number of last time it received page from backend
+  //        2. ending line no - ending line no of the last time it received page from backend;
+  //        3. new content - list of lines present view of lines(starting line no, ending line no)
+  //        4. file name
+  //        5. cursor
+  // Description:
+  //        1. Remove the line numbers in the range(starting line no, ending line no)
+  //        2. Inserting the lines in new content starting position starting line no
+  // Example:
+  //        EditRequest looks like this
+  //            1. start line no - 50
+  //            2. ending line no - 60
+  //            3. new content - ["Hello world"]
+  //
+  //       Assume the file has 100 lines in it
+  //
+  //       File contents before edit:
+  //       ==========================
+  //       line no 1
+  //       line no 2
+  //          .....
+  //       line no 100
+  //
+  //        File contents After Edit:
+  //        =========================
+  //        line no 1
+  //        line no 2
+  //        line no 3
+  //         .....
+  //        line no 49
+  //        Hello World
+  //        line no 61
+  //        line no 62
+  //          ....
+  //        line no 100
+  //
+
+  
+  @Override
+  public void editLines(EditRequest editRequest) {
+    //SourceFileVersionArrayListImpl obj = (SourceFileVersionArrayListImpl) cloneObj(this.sourceobj);
+    //List<String> listoflines = new ArrayList<String>();
+    //Collections.copy(listoflines, obj.getAllLines());
+    int limit = editRequest.getEndingLineNo();
+    if (editRequest.getEndingLineNo() >= lines.size()) {
+      limit = this.lines.size() - 1;
+    }
+
+    for(int i = editRequest.getStartingLineNo();i <= limit;++i) {
+      this.lines.remove(editRequest.getStartingLineNo());
+    }
+    
+    this.lines.addAll(editRequest.getStartingLineNo(), editRequest.getNewContent());
+    //obj.setLines(listoflines);
+  }
+
 
 }

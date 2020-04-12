@@ -322,19 +322,21 @@ public class SourceFileVersionArrayListImpl implements SourceFileVersion {
   // Reference:
   //     https://www.geeksforgeeks.org/kmp-algorithm-for-pattern-searching/
 
+  /*
   @Override
   public List<Cursor> getCursors(SearchRequest searchRequest) {
-    boolean efficient = true;
+    //boolean efficient = true;
     int M = searchRequest.getPattern().length();
     List<Cursor> cursorsList = new ArrayList<Cursor>();
     for(int k = 0; k < lines.size(); k++) { 
       int N = lines.get(k).length(); 
       int lps[] = new int[M]; 
       int j = 0;
-      computeLPSArray(searchRequest.getPattern(), M, lps); 
+      char[] pat = searchRequest.getPattern().toCharArray();
+      computeLPSArray(pat, M, lps); 
       int i = 0; 
       while (i < N) { 
-        if (searchRequest.getPattern().charAt(j) == lines.get(k).charAt(i)) { 
+        if (pat[j] == lines.get(k).charAt(i)) { 
           j++; 
           i++; 
         } 
@@ -344,7 +346,7 @@ public class SourceFileVersionArrayListImpl implements SourceFileVersion {
           j = lps[j - 1]; 
         } 
 
-        else if (i < N && searchRequest.getPattern().charAt(j) != lines.get(k).charAt(i)) { 
+        else if (i < N && pat[j] != lines.get(k).charAt(i)) { 
           if (j != 0) {
             j = lps[j - 1];
           } 
@@ -358,14 +360,14 @@ public class SourceFileVersionArrayListImpl implements SourceFileVersion {
     return cursorsList;
   }
 
-  public void computeLPSArray(String pat, int M, int lps[]) { 
+  public void computeLPSArray(char[] pat, int M, int lps[]) { 
   
     int len = 0; 
     int i = 1; 
     lps[0] = 0;
   
     while (i < M) { 
-      if (pat.charAt(i) == pat.charAt(len)) { 
+      if (pat[i] == pat[len]) { 
         len++; 
         lps[i] = len; 
         i++; 
@@ -381,5 +383,64 @@ public class SourceFileVersionArrayListImpl implements SourceFileVersion {
       } 
     } 
   }
+  */
 
+  @Override
+  public List<Cursor> getCursors(SearchRequest searchRequest) {
+    char[] pat = searchRequest.getPattern().toCharArray();
+    int M = pat.length; 
+    int lps[] = new int[M]; 
+    computeLPSArray(pat, M, lps); 
+    List<Cursor> cursorsList = new ArrayList<Cursor>();
+    for(int k = 0; k < lines.size(); k++) {
+      char[] txt = lines.get(k).toCharArray();
+      int N = txt.length; 
+  
+      int i = 0;
+      int j = 0;
+      while (i < N) { 
+        if (pat[j] == txt[i]) { 
+            j++; 
+            i++; 
+        } 
+  
+        if (j == M) { 
+          cursorsList.add(new Cursor(k, i - j));
+            j = lps[j - 1]; 
+        } 
+  
+        else if (i < N && pat[j] != txt[i]) { 
+          if (j != 0) 
+            j = lps[j - 1]; 
+          else
+            i = i + 1; 
+        } 
+      } 
+    }
+
+    return cursorsList;
+  }
+
+  void computeLPSArray(char[] pat, int M, int lps[]) {  
+    int len = 0; 
+    lps[0] = 0;  
+    int i = 1; 
+    while (i < M) { 
+      if (pat[i] == pat[len]) { 
+        len++; 
+        lps[i] = len; 
+        i++; 
+      } 
+      else { 
+        if (len != 0) { 
+          len = lps[len - 1]; 
+        } 
+        else { 
+          lps[i] = 0; 
+          i++; 
+        } 
+      } 
+    } 
+  } 
 }
+ 
